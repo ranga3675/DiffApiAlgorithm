@@ -9,109 +9,136 @@ using System.Threading.Tasks;
 
 namespace DiffApi.Services
 {
-    public class Home: IHomeService
+    public class Home : IHomeService
     {
-		//Declaration of Collection to store data in memory
+        //Declaration of Collection to store data in memory
         private static List<Diff> diffs = new List<Diff>();
 
-		//Method to add leftside values
-		public async Task<bool> AddLeft(string id, string left)
-		{
-			Diff d = GetDiff(id);
-			if (d != null)
-			{			
-				d.setLeft(left);
-			}
-			else
-			{				
-				d = new Diff(id, left, "");
-				diffs.Add(d);
-			}
-			return true;
-		}
+        //Method to add leftside values
+        public async Task<bool> AddLeft(string id, string left)
+        {
+            Diff d = GetDiff(id);
+            if (d != null)
+            {
+                d.setLeft(left);
+            }
+            else
+            {
+                d = new Diff(id, left, "");
+                diffs.Add(d);
+            }
+            return await Task.Run(() => true);
+        }
 
-		//Method to add right side values
-		public async Task<bool> AddRight(string id, string right)
-		{
-			Diff d = GetDiff(id);
-			if (d != null)
-			{			
-				d.setRight(right);
-			}
-			else
-			{		
-				d = new Diff(id, "", right);
-				diffs.Add(d);
-			}
-			return true;
-		}
+        //Method to add right side values
+        public async Task<bool> AddRight(string id, string right)
+        {
+            Diff d = GetDiff(id);
+            if (d != null)
+            {
+                d.setRight(right);
+            }
+            else
+            {
+                d = new Diff(id, "", right);
+                diffs.Add(d);
+            }
+            return await Task.Run(() => true);
+        }
 
-		private Diff GetDiff(string id)
-		{
-			for (int i = 0; i < diffs.Count; i++)
-			{
-				Diff d = diffs[i];
-				if (d.getId().Equals(id))
-				{					
-					return d;
-				}
-			}		
-			return null;
-		}
+        private Diff GetDiff(string id)
+        {
+            for (int i = 0; i < diffs.Count; i++)
+            {
+                Diff d = diffs[i];
+                if (d.getId().Equals(id))
+                {
+                    return d;
+                }
+            }
+            return null;
+        }
 
-		//Method to compare the right and left side values
-		public async Task<DiffResult> GetData(string id)
-		{	
+        //Method to compare the right and left side values
+        public async Task<DiffResult> GetData(string id)
+        {
 
-			Diff d = GetDiff(id);
-			bool equals = false;
-			bool equalSize = false;
-			List<ByteDiff> differences = new List<ByteDiff>();
+            Diff d = GetDiff(id);
+            bool equals = false;
+            bool equalSize = false;
+            var differences = new List<Difference>();
 
-			if (d != null)
-			{
+            if (d != null)
+            {
 
-				byte[] firstBytes = Convert.FromBase64String(d.getLeft());
-				byte[] secondBytes = Convert.FromBase64String(d.getRight());
+                byte[] firstBytes = Convert.FromBase64String(d.getLeft());
+                byte[] secondBytes = Convert.FromBase64String(d.getRight());
 
-				var data1 = Encoding.UTF8.GetString(firstBytes);
-				var data2 = Encoding.UTF8.GetString(secondBytes);
+                var data1 = Encoding.UTF8.GetString(firstBytes);
+                var data2 = Encoding.UTF8.GetString(secondBytes);
 
-				//Verify if data have same size.
-				equalSize = firstBytes.Length == secondBytes.Length;
+                equalSize = firstBytes.Length == secondBytes.Length;
 
-				if (equalSize)
-				{
-					//Data have same size, maybe they are equal.
-					equals = Enumerable.SequenceEqual(firstBytes, secondBytes);
-				}
+                if (equalSize)
+                {
+                    equals = Enumerable.SequenceEqual(firstBytes, secondBytes);
+                }
 
-				//If not equals, but data have same size,
-				//provide insight in where the diffs are.
-				if (!equals && equalSize)
-				{
-					byte different = 0;
-					
-					for (int index = 0; index < firstBytes.Length; index++)
-					{
-						int totalDiffBits = 0;
-						different = (byte)(firstBytes[index] ^ secondBytes[index]);
-						if (different != 0)
-						{
-							while (different != 0)
-							{
-								totalDiffBits++;
-								different &= (byte)(different - 1);
-							}
-							differences.Add(new ByteDiff(index, totalDiffBits));
-						}
-					}
-				}
-			}	
 
-			return new DiffResult(id, equals, equalSize, differences);
-		
-		}
+                if (!equals && equalSize)
+                {
+                    var offset = 0;
+                    var length = 0;
+                    var left = data1;
+                    var right = data2;
+                    for (var index = 0; index < left.Length; index++)
+                    {
+                        var areEqualChars = left[index] == right[index];
+                        var isLengthZero = length == 0;
 
-	}
+                        if (areEqualChars && isLengthZero) continue;
+
+                        if (!areEqualChars && isLengthZero)
+                        {
+                            offset = index;
+                            length++;
+                        }
+
+                        else if (!areEqualChars && !isLengthZero)
+                        {
+                            length++;
+                        }
+
+                        else
+                        {
+                            differences.Add(new Difference(offset, length));
+                            offset = 0;
+                            length = 0;
+                        }
+                    }
+                    //if there is a pending difference, because the different is at the end of the strings
+                    if (length > 0) differences.Add(new Difference(offset, length));
+
+                    //byte different = 0;
+                    //for (int index = 0; index < firstBytes.Length; index++)
+                    //{
+                    //	int totalDiffBits = 0;
+                    //	different = (byte)(firstBytes[index] ^ secondBytes[index]);
+                    //	if (different != 0)
+                    //	{
+                    //		while (different != 0)
+                    //		{
+                    //			totalDiffBits++;
+                    //			different &= (byte)(different - 1);
+                    //		}
+                    //		differences.Add(new ByteDiff(index, totalDiffBits));
+                    //	}
+                    //}
+                }
+            }
+
+            return await Task.Run(() => new DiffResult(id, equals, equalSize, differences));
+
+        }
+    }
 }

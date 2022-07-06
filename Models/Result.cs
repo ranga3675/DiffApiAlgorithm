@@ -8,5 +8,7 @@ namespace DiffApi.Models
     public class Result
     {
         public string diffResultType { get; set; }
+
+        public List<Difference> differences;
     }
 }

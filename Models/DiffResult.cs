@@ -13,13 +13,13 @@ namespace DiffApi.Models
 	
 		public bool equalSize;
 		
-		public List<ByteDiff> differences;
+		public List<Difference> differences;
 
 		public DiffResult()
 		{
 		}
 
-		public DiffResult(string id, bool equals, bool equalSize, List<ByteDiff> differences)
+		public DiffResult(string id, bool equals, bool equalSize, List<Difference> differences)
 		{		
 			this.id = id;
 			this.equals = equals;
@@ -58,12 +58,12 @@ namespace DiffApi.Models
 			this.equalSize = equalSize;
 		}
 
-		public List<ByteDiff> getDifferences()
+		public List<Difference> getDifferences()
 		{
 			return differences;
 		}
 
-		public void setDifferences(List<ByteDiff> differences)
+		public void setDifferences(List<Difference> differences)
 		{
 			this.differences = differences;
 		}
