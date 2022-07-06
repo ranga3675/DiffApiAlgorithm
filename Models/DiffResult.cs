@@ -12,6 +12,8 @@ namespace DiffApi.Models
 		public bool equals;
 	
 		public bool equalSize;
+
+		public bool hasBothdata;
 		
 		public List<Difference> differences;
 
@@ -19,12 +21,13 @@ namespace DiffApi.Models
 		{
 		}
 
-		public DiffResult(string id, bool equals, bool equalSize, List<Difference> differences)
+		public DiffResult(string id, bool equals, bool equalSize, List<Difference> differences, bool hasBothdata)
 		{		
 			this.id = id;
 			this.equals = equals;
 			this.equalSize = equalSize;
 			this.differences = differences;
+			this.hasBothdata = hasBothdata;
 		}
 
 		public string getId()
@@ -56,6 +59,17 @@ namespace DiffApi.Models
 		public void setEqualSize(bool equalSize)
 		{
 			this.equalSize = equalSize;
+		}
+
+		public bool isHasBothData()
+		{
+			return hasBothdata;
+		}
+
+
+		public void setHasBothData(bool hasBothdata)
+		{
+			this.hasBothdata = hasBothdata;
 		}
 
 		public List<Difference> getDifferences()

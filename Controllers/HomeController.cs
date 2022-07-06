@@ -75,11 +75,11 @@ namespace DiffApi.Controllers
                 {
                     responseResult = new Result {diffResultType = "Equals" };
                 }
-                if(!responseData.equals && responseData.equalSize)
+                else if(!responseData.equals && responseData.equalSize)
                 {
                     responseResult = new Result { diffResultType = "ContentDoNotMatch", differences = responseData.differences };
                 }
-                if (!responseData.equals && !responseData.equalSize && responseData.differences.Count == 0)
+                else if(!responseData.equals && !responseData.equalSize && responseData.differences.Count == 0 && responseData.hasBothdata)
                 {
                     responseResult = new Result { diffResultType = "SizeDoNotMatch"};
                 }

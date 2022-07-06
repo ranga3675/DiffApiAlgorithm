@@ -67,17 +67,22 @@ namespace DiffApi.Services
             bool equals = false;
             bool equalSize = false;
             var differences = new List<Difference>();
-
+            bool hasBothData = false;
             if (d != null)
             {
 
                 byte[] firstBytes = Convert.FromBase64String(d.getLeft());
                 byte[] secondBytes = Convert.FromBase64String(d.getRight());
 
-                var data1 = Encoding.UTF8.GetString(firstBytes);
-                var data2 = Encoding.UTF8.GetString(secondBytes);
+                var leftData = Encoding.UTF8.GetString(firstBytes);
+                var rightData = Encoding.UTF8.GetString(secondBytes);
 
                 equalSize = firstBytes.Length == secondBytes.Length;
+
+                if(!string.IsNullOrWhiteSpace(leftData) && !string.IsNullOrWhiteSpace(rightData))
+                {
+                    hasBothData = true;
+                }
 
                 if (equalSize)
                 {
@@ -89,8 +94,8 @@ namespace DiffApi.Services
                 {
                     var offset = 0;
                     var length = 0;
-                    var left = data1;
-                    var right = data2;
+                    var left = leftData;
+                    var right = rightData;
                     for (var index = 0; index < left.Length; index++)
                     {
                         var areEqualChars = left[index] == right[index];
@@ -137,7 +142,7 @@ namespace DiffApi.Services
                 }
             }
 
-            return await Task.Run(() => new DiffResult(id, equals, equalSize, differences));
+            return await Task.Run(() => new DiffResult(id, equals, equalSize, differences, hasBothData));
 
         }
     }
